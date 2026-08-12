@@ -19,8 +19,18 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: (origin, callback) => {
+      // ১. যদি রিকোয়েস্টে origin না থাকে (যেমন Postman/Mobile App)
+      // ২. অথবা origin যদি allowedOrigins লিস্টে থাকে
+      // ৩. অথবা origin যদি vercel.app দিয়ে শেষ হয় (*.vercel.app)
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   })
 );
