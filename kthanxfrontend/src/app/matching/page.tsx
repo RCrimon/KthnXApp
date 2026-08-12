@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSocket } from "@/context/SocketContext";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import MatchingRadarCard from "@/components/matching/macthingCard";
 
-export default function MatchingPage() {
+// 🎯 ১. মূল Matching Logic Component
+function MatchingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawPref = searchParams.get("pref") || "anyone";
@@ -26,7 +27,7 @@ export default function MatchingPage() {
 
     console.log("📡 Joining matchmaking queue...");
 
-    // 🎯১. সঠিক ইভেন্ট নেম 'join-matchmaking' ফায়ার করা হলো
+    // 🎯১. সঠিক ইভেন্ট নেম 'join-matchmaking' ফায়ার করা হলো
     socket.emit("join-matchmaking", { interestedIn });
 
     // 🎯২. ইভেন্ট লিসেনার
@@ -51,11 +52,24 @@ export default function MatchingPage() {
   }, [socket, isConnected, interestedIn, router]);
 
   return (
+    <div className="relative z-10 w-full max-w-2xl flex justify-center">
+      <AnimatedBackground />
+      <MatchingRadarCard />
+    </div>
+  );
+}
+
+// 🎯 ২. Suspense Boundary সহ Main Page Export
+export default function MatchingPage() {
+  return (
     <div className="relative w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-300 via-purple-100 to-indigo-200 p-4 sm:p-6 font-sans overflow-hidden">
-      <div className="relative z-10 w-full max-w-2xl flex justify-center">
-        <AnimatedBackground />
-        <MatchingRadarCard />
-      </div>
+      <Suspense fallback={
+        <div className="relative z-10 text-xl font-bold text-slate-800 animate-pulse">
+          Finding partner...
+        </div>
+      }>
+        <MatchingContent />
+      </Suspense>
     </div>
   );
 }
