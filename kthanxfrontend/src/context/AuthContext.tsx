@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // 🎯 কুকি অথবা লোকালস্টোরেজ যেকোনো একটি থেকে টোকেন রিটার্ন করবে
+   
     const savedToken = Cookies.get("token") || localStorage.getItem("token");
     if (savedToken) {
       setToken(savedToken);
@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = (newToken: string) => {
-    // 🎯 LocalStorage এবং Cookies দুটোতেই ৭ দিনের মেয়াদ সহ টোকেন সেট করো
+
     localStorage.setItem("token", newToken);
     Cookies.set("token", newToken, { expires: 7, path: "/" });
     setToken(newToken);

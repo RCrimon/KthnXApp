@@ -21,7 +21,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // 🎯 AuthContext এর টোকেন না থাকলে কুকি বা লোকালস্টোরেজ থেকে নেয়ার চেষ্টা করবে
+   
     const activeToken = token || Cookies.get("token") || (typeof window !== "undefined" ? localStorage.getItem("token") : null);
 
     if (!activeToken) {
@@ -35,7 +35,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
       auth: { token: activeToken },
-      transports: ["websocket", "polling"], // 🎯 Safe fallback
+      transports: ["websocket", "polling"], 
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,
