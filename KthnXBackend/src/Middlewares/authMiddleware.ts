@@ -24,7 +24,7 @@ export const protectRouter = async (req:CustomRequest,res:Response,next:NextFunc
    if(!authHeader || !authHeader.startsWith('Bearer ')){
     return res.status(401).json({ message: 'Not authorized, no token found' })
    }
-   const token = authHeader.split(' ')[1]
+   const token = authHeader?.split(' ')[1]
    const decoded = jwt.verify(token as string ,process.env.JWT_SECRET as string) as Userpayload
    const user = await User.findById(decoded.id).select('-password')
    if(!user){
@@ -55,7 +55,11 @@ export const socketAuth = async (socket:Socket, next:(err?:Error)=>void)=>{
     if(!user){
       return next(new Error('user not found'))
     }
-    socket.data.user = user
+    socket.data.user = {
+      _id: user._id.toString(),
+      gender: user.gender,
+      interestedIn: user.interestedIn
+    };
     next()
   } catch (error) {
     return next(new Error('invalid token'))

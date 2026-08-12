@@ -7,6 +7,8 @@ export interface Iuser extends Document {
   googleId ?: string,
   picture : string,
   authProvider : 'local' | 'google',
+  gender: 'Male' | 'Female';
+  interestedIn: 'Male' | 'Female' | 'Both';
   createdAt : Date,
   updatedAt : Date
 }
@@ -43,6 +45,18 @@ const userSchema = new Schema<Iuser>(
       type : String,
       enum : ['local','google'],
       default : 'local'
+    },
+    gender: {
+      type: String,
+      enum: ['Male', 'Female'],
+      required: true,
+      default: 'Male'
+    },
+    interestedIn: {
+      type: String,
+      enum: ['Male', 'Female', 'Both'],
+      required: true,
+      default: 'Both'
     }
   },
   {

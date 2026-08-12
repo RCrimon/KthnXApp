@@ -8,10 +8,10 @@ interface userint {
 }
 
 interface waitingList {
-  socketId : string
-  userId : string
-  interestedIn : 'Male' | 'Female' |'Both'
-  gender : 'Male' | 'Female'
+  socketId : string ;
+  userId : string;
+  interestedIn : 'Male' | 'Female' |'Both';
+  gender : 'Male' | 'Female';
 }
 
 let waitingQueue : waitingList[] = []
@@ -39,38 +39,46 @@ export const handleMatchmaking = (io:Server,socket:Socket)=>{
       return
     }
 
-    const matchIndex = waitingQueue.findIndex((candidate)=>{
-      const userMatchesCandidate = interestedIn === 'Both' || interestedIn === candidate.gender
-      const candidateMatchesUser = candidate.interestedIn === 'Both' || candidate.interestedIn === gender
-      return userMatchesCandidate && candidateMatchesUser && candidate.userId !== userId.toString()
-    })
+    let matchIndex = -1 
+    while (waitingQueue.length > 0) {
+      matchIndex = waitingQueue.findIndex((candidaate)=>{
+        const userMatchesCandidate = interestedIn === 'Both' || interestedIn === candidaate.gender
+        const candidateMatchesUser = candidaate.interestedIn === 'Both' || candidaate.interestedIn === gender 
+        return userMatchesCandidate && candidateMatchesUser && candidaate.userId !== userId
+      })
 
-   
+      if (matchIndex === -1) break
+
+      const partnerCandidate = waitingQueue[matchIndex]
+      const partnerSocket = io.sockets.sockets.get(partnerCandidate?.socketId!)
+      if (partnerSocket && partnerSocket.connected){
+        break
+      }else {
+        waitingQueue.splice(matchIndex,1)
+        matchIndex = -1
+      }
+    }
 
     if(matchIndex !== -1){
-     const partner = waitingQueue.splice(matchIndex,1)[0]
-     if(!partner) return
-     const roomId = `room-${uuidv4()}`
-
-     activeUsers.add(userId)
-     activeUsers.add(partner?.userId as string)
-     
-
-     socket.join(roomId)
-     io.sockets.sockets.get(partner.socketId)?.join(roomId)
-     
-     io.to(socket.id).emit("match-found", {roomId,partnerId:partner?.userId})
-     io.to(partner?.socketId || '').emit("match-found", {roomId,partnerId:userId}) 
-     console.log(`Match Done! Room: ${roomId}`);
+      const partner = waitingQueue.splice(matchIndex,1)[0]
+      if(!partner) return
+      const roomId = `room-${uuidv4()}`
+      activeUsers.add(userId)
+      activeUsers.add(partner.userId)
+      socket.join(roomId)
+      io.sockets.sockets.get(partner.socketId)?.join(roomId)
+      socket.emit("match-found", { roomId, partnerId: partner.userId });
+      io.to(partner.socketId).emit("match-found", { roomId, partnerId: userId });
+    }else{
+      waitingQueue.push({
+        socketId : socket.id,
+        userId : user._id,
+        gender,
+        interestedIn
+      })
+      socket.emit("waiting-for-match", "Searching for a partner...")
     }
-    else{
-        waitingQueue.push({
-          socketId : socket.id,
-          userId : userId.toString(),
-          gender,
-          interestedIn
-        })
-    }
+  
   })
 
   socket.on("send-message",({roomId,message}:{roomId :string, message :string})=>{
@@ -83,6 +91,14 @@ export const handleMatchmaking = (io:Server,socket:Socket)=>{
       createdAt : new Date().toISOString()
     })
   })
+
+  socket.on("typing", ({ roomId }: { roomId: string }) => {
+    socket.to(roomId).emit("user-typing", { isTyping: true });
+  });
+  
+  socket.on("stop-typing", ({ roomId }: { roomId: string }) => {
+    socket.to(roomId).emit("user-typing", { isTyping: false });
+  });
   
    const cleanupUser = (userId : string | undefined)=>{
     waitingQueue = waitingQueue.filter((u)=> u.userId !== userId && u.socketId !== socket.id)
@@ -123,4 +139,4 @@ export const handleMatchmaking = (io:Server,socket:Socket)=>{
     const user = socket.data?.user as userint | undefined
     cleanupUser(user?._id?.toString())
   })
-}
+  }

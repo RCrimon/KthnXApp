@@ -5,10 +5,11 @@ import { handleMatchmaking } from './match.js';
 
 export const initSocket = (httpServer : HttpServer)=>{
   const io = new Server(httpServer,{
-    cors:{
-      origin:'*',
-      methods:['GET','POST']
-    }
+   cors: {
+      origin: ['http://localhost:3000', 'http://192.168.10.219:3000'],
+      methods: ['GET', 'POST'],
+      credentials: true, 
+    },
   })
 
   io.use(socketAuth)
