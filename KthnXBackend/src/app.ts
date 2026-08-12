@@ -11,13 +11,19 @@ dotenv.config()
 
 const app = express()
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://192.168.10.219:3000',
+  process.env.CLIENT_URL,
+].filter(Boolean) as string[];
+
 app.use(
   cors({
-    origin:['http://localhost:3000', 'http://192.168.10.219:3000'],
-    methods:['GET', 'POST', 'PUT', 'DELETE'],
-    credentials:true
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
   })
-)
+);
 
 app.use(express.json())
 const port =process.env.PORT || 5000
