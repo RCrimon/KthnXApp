@@ -1,3 +1,5 @@
+"use client";
+
 import AnimatedBackground from "@/components/AnimatedBackground";
 import AnonymousChatRoom from "@/components/chat/chatRoom";
 
@@ -10,6 +12,7 @@ export default function ChatPage() {
 
       {/* Anonymous Chat Container */}
       <div className="relative z-10 w-full h-full flex items-center justify-center">
+        {/* roomId বাদ দিয়ে শুধু এভাবে রাখো */}
         <AnonymousChatRoom />
       </div>
 
