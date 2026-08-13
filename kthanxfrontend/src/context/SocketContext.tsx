@@ -33,12 +33,18 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
+    const rawUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "https://kthanx-backend.onrender.com"
+    const serverUrl = rawUrl.replace(/\/$/,"")
+
+    const socketInstance = io(serverUrl, {
       auth: { token: activeToken },
       transports: ["websocket", "polling"], 
       autoConnect: true,
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      timeout: 20000, 
+      withCredentials: true
     });
 
     socketInstance.on("connect", () => {
