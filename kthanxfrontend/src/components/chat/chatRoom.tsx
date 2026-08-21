@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Lock, Sparkles } from "lucide-react";
+import { Lock, } from "lucide-react";
 
 import { ChatHeader } from "./ChatHeader";
 import { MessageBubble } from "./MessageBubble";
@@ -36,7 +36,6 @@ export default function AnonymousChatRoom({ roomId: propRoomId }: AnonymousChatR
   useEffect(() => {
     if (!socket || !roomId) return;
 
-    // 🚀 রুমে জয়েন ফায়ার করার সেফ মেথড
     const joinRoom = () => {
       console.log(`📌 Emitting join-room for room: ${roomId} with socket: ${socket.id}`);
       socket.emit("join-room", { roomId });
@@ -46,7 +45,6 @@ export default function AnonymousChatRoom({ roomId: propRoomId }: AnonymousChatR
       joinRoom();
     }
     
-    // সকেট রি-কানেক্ট হলেও অটো রুম জয়েন করবে
     socket.on("connect", joinRoom);
 
     const handleReceiveMessage = (data: {
@@ -174,7 +172,6 @@ export default function AnonymousChatRoom({ roomId: propRoomId }: AnonymousChatR
             exit={{ opacity: 0, y: 5 }}
             className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100 text-xs font-black italic bg-white/50 dark:bg-slate-800/50 w-fit px-3 py-1 rounded-xl border border-white/40 backdrop-blur-md shadow-sm"
           >
-            <Sparkles className="w-3.5 h-3.5 text-rose-500 animate-spin" />
             <span>Stranger is typing...</span>
           </motion.div>
         )}
