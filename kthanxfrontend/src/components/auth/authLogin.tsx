@@ -116,7 +116,7 @@ export default function AuthLogin() {
           <div className="flex-1 border-t border-slate-400/50"></div>
         </div>
 
-        {/* 🎯 Clean Google Button Component */}
+
         <GoogleLoginBtn setError={setError} setLoading={setLoading} />
 
         <div className="pt-3 flex items-center justify-center gap-2 text-sm sm:text-lg font-bold text-slate-800">

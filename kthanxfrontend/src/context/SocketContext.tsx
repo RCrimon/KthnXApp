@@ -2,72 +2,66 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { useAuth } from "./AuthContext";
-import Cookies from "js-cookie";
 
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
 }
 
-const SocketContext = createContext<SocketContextType>({ 
+const SocketContext = createContext<SocketContextType>({
   socket: null,
-  isConnected: false
+  isConnected: false,
 });
 
+let globalSocket: Socket | null = null;
+
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  const { token } = useAuth();
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(globalSocket);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-   
-    const activeToken = token || Cookies.get("token") || (typeof window !== "undefined" ? localStorage.getItem("token") : null);
+    if (!globalSocket) {
+     const BACKEND_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000";
 
-    if (!activeToken) {
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-        setIsConnected(false);
-      }
-      return;
+    globalSocket = io(BACKEND_URL, {
+        withCredentials: true,
+        transports: ["websocket", "polling"],
+        autoConnect: true,
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+   
+        auth: {
+          token: typeof window !== "undefined" ? localStorage.getItem("token") : "",
+        },
+      });
     }
 
-    const rawUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "https://kthanx-backend.onrender.com"
-    const serverUrl = rawUrl.replace(/\/$/,"")
+    const s = globalSocket;
+    setSocket(s);
 
-    const socketInstance = io(serverUrl, {
-      auth: { token: activeToken },
-      transports: ["websocket", "polling"], 
-      autoConnect: true,
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 2000,
-      timeout: 20000, 
-      withCredentials: true
-    });
-
-    socketInstance.on("connect", () => {
-      console.log("🟢 Socket Connected! ID:", socketInstance.id);
+    function onConnect() {
+      console.log("Socket Connected! ID:", s.id);
       setIsConnected(true);
-    });
-    
-    socketInstance.on("connect_error", (err) => {
-      console.error("🔴 Socket Connect Error:", err.message);
-      setIsConnected(false);
-    });
+    }
 
-    socketInstance.on("disconnect", (reason) => {
-      console.log("🟡 Socket Disconnected Reason:", reason);
+    function onDisconnect(reason: string) {
+      console.log("Socket Disconnected Reason:", reason);
       setIsConnected(false);
-    });
+    }
 
-    setSocket(socketInstance);
+    s.on("connect", onConnect);
+    s.on("disconnect", onDisconnect);
+
+    if (s.connected) {
+      setIsConnected(true);
+    }
 
     return () => {
-      socketInstance.disconnect();
+      s.off("connect", onConnect);
+      s.off("disconnect", onDisconnect);
     };
-  }, [token]);
+  }, []);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>

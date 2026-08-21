@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getUserProfile } from "@/services/auth.service";
 
-// 🎯 ১. ইন্টারফেস কম্পোনেন্টের বাইরে নিয়ে আসা হলো
 interface IUser {
   _id?: string;
   name?: string;
@@ -20,18 +19,11 @@ export default function UserProfile() {
     const fetchProfile = async () => {
       try {
         const data = await getUserProfile();
-        console.log("Fetched User Profile Data:", data); // 🔍 ব্রাউজার কনসোলে রেসপন্স স্ট্রাকচার দেখার জন্য
 
-        // 🎯 ২. ব্যাকএন্ডের বিভিন্ন রেসপন্স ফরম্যাটের জন্য সেফ এক্সট্রাকশন
         const userObj = data?.user || data?.data?.user || data?.data || data;
         setUser(userObj);
       } catch (error) {
         const err = error as any;
-        console.error("Profile load failed detailed error:", {
-          message: err?.message,
-          response: err?.response?.data,
-          status: err?.response?.status,
-        });
       } finally {
         setLoading(false);
       }
@@ -39,11 +31,10 @@ export default function UserProfile() {
     fetchProfile();
   }, []);
 
-  // 🎯 ৩. ফার্স্ট নেম বা পুরো নাম সঠিকভাবে হ্যান্ডেল করা
+
   const getDisplayName = (fullName?: string) => {
     if (!fullName || fullName.trim() === "") return "User";
     const parts = fullName.trim().split(/\s+/);
-    // যদি ২ বা তার বেশি শব্দ থাকে তবে ২য় নাম, নাহলে ১ম নাম
     return parts.length > 1 ? parts[1] : parts[0];
   };
 

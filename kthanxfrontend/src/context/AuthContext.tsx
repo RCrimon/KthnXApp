@@ -5,25 +5,31 @@ import Cookies from "js-cookie";
 
 interface AuthContextType {
   token: string | null;
+  loading: boolean;
   login: (token: string) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   token: null,
+  loading: true,
   login: () => {},
   logout: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
+  const [ loading , setLoading] = useState<boolean>(true)
 
   useEffect(() => {
    
     const savedToken = Cookies.get("token") || localStorage.getItem("token");
     if (savedToken) {
       setToken(savedToken);
+    }else{
+      setToken(null)
     }
+    setLoading(false)
   }, []);
 
   const login = (newToken: string) => {
@@ -40,7 +46,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ token,loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

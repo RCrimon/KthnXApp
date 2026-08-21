@@ -19,7 +19,6 @@ const allowedOrigins = [
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Postman/Mobile অথবা Allowed Origin অথবা যেকোনো *.vercel.app সাবডোমেন
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
@@ -31,11 +30,8 @@ const corsOptions: cors.CorsOptions = {
   credentials: true,
 };
 
-// ১. CORS মিডলওয়্যার (সব রুটের ওপরে বসাবে)
 app.use(cors(corsOptions));
 
-// ২. Preflight (OPTIONS) রিকোয়েস্ট হ্যান্ডেলার
-app.options('*', cors(corsOptions));
 
 app.use(express.json());
 
@@ -49,7 +45,6 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Server and Socket System Running Smoothly');
 });
 
-// Authentication Routes
 app.use('/api/auth', router);
 
 const connectDb = async () => {
@@ -58,9 +53,7 @@ const connectDb = async () => {
       throw new Error('MONGODB_URL is not defined inside environment variables');
     }
     await mongoose.connect(mongodbUrl);
-    console.log('MongoDB Database Connected Successfully');
     httpServer.listen(port, () => {
-      console.log(`Server & Socket listening on http://localhost:${port} 🚀`);
     });
   } catch (error) {
     console.error('Database connection failed:', error);

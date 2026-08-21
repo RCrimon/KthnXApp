@@ -21,7 +21,7 @@ export interface MatchedPartner {
 }
 
 export interface MatchFoundData {
-  partner: MatchedPartner;
+  partnerId?: string;
   roomId: string;
 }
 
@@ -44,7 +44,6 @@ export default function MatchingRadarCard({
   const [isConnecting, setIsConnecting] = useState(false);
   const [matchedPartner, setMatchedPartner] = useState<MatchedPartner | null>(null);
 
-
   useEffect(() => {
     if (isMatched || isConnecting) return;
     const interval = setInterval(() => {
@@ -53,26 +52,34 @@ export default function MatchingRadarCard({
     return () => clearInterval(interval);
   }, [isMatched, isConnecting]);
 
-  
+
   useEffect(() => {
     if (!socket) return;
 
     let timeoutId: NodeJS.Timeout;
 
     const handleMatchFound = (data: MatchFoundData) => {
-      setMatchedPartner(data.partner);
+      setMatchedPartner({ id: data.partnerId || "partner", name: "Stranger" });
       setIsConnecting(false);
       setIsMatched(true);
       
       timeoutId = setTimeout(() => {
         router.push(`/chat/${data.roomId}`);
-      }, 2200);
+      }, 1500);
     };
 
-    socket.on("match_found", handleMatchFound);
+    const handleWaiting = (msg: string) => {
+      console.log("Waiting:", msg);
+    };
+
+    socket.on("match-found", handleMatchFound);
+    socket.on("matched", handleMatchFound);
+    socket.on("waiting-for-match", handleWaiting);
 
     return () => {
-      socket.off("match_found", handleMatchFound);
+      socket.off("match-found", handleMatchFound);
+      socket.off("matched", handleMatchFound);
+      socket.off("waiting-for-match", handleWaiting);
       if (timeoutId) clearTimeout(timeoutId); 
     };
   }, [socket, router]);
@@ -80,13 +87,13 @@ export default function MatchingRadarCard({
   const handleManualMatch = () => {
     if (!socket || !isConnected) return alert("Socket disconnected!");
     setIsConnecting(true);
-    socket.emit("find_match", { preference });
+    
+    console.log("📡 Emitting join-matchmaking with preference:", preference);
+    socket.emit("join-matchmaking", { interestedIn: preference });
   };
 
   return (
     <div className="w-full max-w-3xl opacity-95 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border-2 border-white/70 dark:border-white/10 shadow-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col gap-5">
-      
-      
       <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
         <span className="font-black text-xl sm:text-2xl bg-gradient-to-r from-amber-500 to-rose-500 bg-clip-text text-transparent">
           KthanX
@@ -96,13 +103,11 @@ export default function MatchingRadarCard({
         </Button>
       </div>
 
-      
       <div className="flex flex-col items-center gap-6 py-8 bg-black/5 dark:bg-white/5 rounded-2xl min-h-[280px]">
         <h2 className="font-black text-base sm:text-lg text-slate-900 dark:text-white uppercase">
           {isMatched ? "Perfect Match Found!" : "Matching Radar"}
         </h2>
 
-       
         <RadarAvatars 
           isMatched={isMatched}
           isConnecting={isConnecting}
@@ -113,13 +118,11 @@ export default function MatchingRadarCard({
           matchedPartner={matchedPartner}
         />
 
-    
         <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/10 px-3.5 py-1.5 rounded-xl text-xs font-black">
           <Filter className="w-3.5 h-3.5 text-amber-500" />
           <span>Filter: <strong className="text-rose-500 capitalize">{preference}</strong></span>
         </div>
 
-       
         <div className="w-full max-w-xs px-4">
           {!isMatched ? (
             <Button 
@@ -128,7 +131,7 @@ export default function MatchingRadarCard({
               className="w-full h-12 bg-gradient-to-r from-amber-500 to-rose-500 font-black rounded-xl hover:opacity-90 transition-opacity"
             >
               {isConnecting ? <Zap className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5 fill-white" />}
-              <span>{isConnecting ? "CONNECTING..." : "MATCH NOW"}</span>
+              <span>{isConnecting ? "SEARCHING..." : "MATCH NOW"}</span>
             </Button>
           ) : (
             <div className="flex items-center justify-center gap-2 text-emerald-500 font-black text-sm bg-emerald-500/10 py-3 rounded-xl border border-emerald-500/30">
