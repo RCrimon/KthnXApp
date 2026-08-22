@@ -37,7 +37,6 @@ export default function AnonymousChatRoom({ roomId: propRoomId }: AnonymousChatR
     if (!socket || !roomId) return;
 
     const joinRoom = () => {
-      console.log(`📌 Emitting join-room for room: ${roomId} with socket: ${socket.id}`);
       socket.emit("join-room", { roomId });
     };
 
@@ -53,7 +52,6 @@ export default function AnonymousChatRoom({ roomId: propRoomId }: AnonymousChatR
       createAt?: string;
       createdAt?: string;
     }) => {
-      console.log("📩 Message Received:", data);
       const rawDate = data.createAt || data.createdAt || new Date().toISOString();
       const formattedTime = new Date(rawDate).toLocaleTimeString([], {
         hour: "2-digit",
@@ -172,7 +170,7 @@ export default function AnonymousChatRoom({ roomId: propRoomId }: AnonymousChatR
             exit={{ opacity: 0, y: 5 }}
             className="flex items-center gap-1.5 text-slate-900 dark:text-slate-100 text-xs font-black italic bg-white/50 dark:bg-slate-800/50 w-fit px-3 py-1 rounded-xl border border-white/40 backdrop-blur-md shadow-sm"
           >
-            <span>Stranger is typing...</span>
+            <span>typing...</span>
           </motion.div>
         )}
         <div ref={messagesEndRef} />
